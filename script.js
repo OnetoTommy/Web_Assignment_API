@@ -181,7 +181,7 @@ sendData(bookData)
 
 
 document.getElementById('create-book-form').addEventListener('submit', function (event) {
-  event.preventDefault(); // prevent default form submission
+  event.preventDefault(); // Prevent default form submission
 
   // Get all input values
   const name = document.getElementById('name').value.trim();
@@ -221,7 +221,18 @@ document.getElementById('create-book-form').addEventListener('submit', function 
   // Save back to localStorage
   localStorage.setItem('books', JSON.stringify(existingBooks));
 
-  // Redirect to homepage
-  window.location.href = "index.html";
+  // Show success alert
+  alert("Book added successfully!");
+
+  // Redirect to homepage after a short delay
+  setTimeout(function() {
+    window.location.href = "index.html";
+  }, 100); // Delay of 100 milliseconds
 });
 
+
+
+const create_book = document.getElementById('create_book')
+create_book.addEventListener('click', () =>{
+  window.location.href = 'create-book.html';
+})
