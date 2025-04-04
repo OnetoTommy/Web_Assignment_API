@@ -180,21 +180,48 @@ sendData(bookData)
 });
 
 
-function handleclicker(event){
+document.getElementById('create-book-form').addEventListener('submit', function (event) {
+  event.preventDefault(); // prevent default form submission
+
+  // Get all input values
   const name = document.getElementById('name').value.trim();
-  let isValid = true; 
-  
-  // Check name length
-  if (name.length < 3){
+  const author = document.getElementById('author').value.trim();
+  const editorial = document.getElementById('editorial').value.trim();
+  const edition = document.getElementById('edition').value.trim();
+  const number_of_pages = parseInt(document.getElementById('number_of_pages').value.trim());
+  const topics = document.getElementById('topics').value.trim();
+
+  // Basic validation
+  if (name.length < 3) {
     alert("Name must be at least 3 characters.");
-    isValid = false;
+    return;
   }
 
-  // Prevent form submission if validation fails
-  if (!isValid) {
-    event.preventDefault(); // Prevent form from submitting
+  if (number_of_pages <= 0 || isNaN(number_of_pages)) {
+    alert("Number of pages must be a positive number.");
+    return;
   }
-}
-// Add event listener to form
-document.getElementById('create-book-form').addEventListener('submit', handleclicker);
+
+  // Create new book object
+  const newBook = {
+    name,
+    author,
+    editorial,
+    edition,
+    number_of_pages,
+    topics
+  };
+
+  // Get existing books from localStorage or start fresh
+  const existingBooks = JSON.parse(localStorage.getItem('books')) || [];
+
+  // Add new book to list
+  existingBooks.push(newBook);
+
+  // Save back to localStorage
+  localStorage.setItem('books', JSON.stringify(existingBooks));
+
+  // Redirect to homepage
+  window.location.href = "index.html";
+});
 
