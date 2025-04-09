@@ -1,23 +1,4 @@
-// Function to send data via POST
-function sendData(data) {
-  return fetch('https://jsonplaceholder.typicode.com/posts', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: {
-      'Content-type': 'application/json; charset=UTF-8',
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Response from server:', data);
-      return data; // Return the data received from the server
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
-}
 
-// Original JSON (bookData)
 const bookData = {
   id1: {
     item1: {
@@ -121,118 +102,155 @@ const bookData = {
   }
 };
 
-// Get the books list once the data is fetched
-sendData(bookData)
-  .then((data) => {
-    const booksList = document.getElementById('book_list');
 
-    // Iterate through each book and create a clickable link
-    Object.keys(data).forEach((id) => {
-      const book = data[id];
-      const listItem = document.createElement('li');
-
-      // Create a clickable link for the book
-      const bookLink = document.createElement('a');
-      bookLink.href = `book-details.html?id=${id}`; // Passing book id as query parameter
-      bookLink.textContent = book[`item${id.slice(-1)}`].name;
-
-      listItem.appendChild(bookLink);
-      booksList.appendChild(listItem);
-    });
+function sendData(data) {
+  return fetch('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    },
   })
-  .catch((error) => {
-    console.error('Error fetching data:', error);
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      console.log('Response from server:', data);
+      return bookData; 
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+}
 
 
-  // Function to get the query parameter by name (e.g., 'id')
- function getQueryParam(param) {
+function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(param);
 }
 
-// Get the 'id' parameter from the URL
-const bookId = getQueryParam('id');
+document.addEventListener('DOMContentLoaded', () => {
+  const booksList = document.getElementById('book_list');
+  if (!booksList) return;
 
-// Fetch the book data (This could be from a local source or API)
-sendData(bookData)
-.then(data => {
-  // Get the book details using the id passed in the URL
-  const book = data[`id${bookId.slice(-1)}`]?.[`item${bookId.slice(-1)}`];
+  let books = JSON.parse(localStorage.getItem('books'));
+  if (!books || books.length === 0) {
+    books = Object.values(bookData).map(obj => Object.values(obj)[0]);
+    localStorage.setItem('books', JSON.stringify(books));
+  }
 
-  if (book) {
-      // If book is found, display details
+  booksList.innerHTML = ''; 
+  books.forEach((book, index) => {
+    const listItem = document.createElement('li');
+
+    const bookLink = document.createElement('a');
+    bookLink.href = `book-details.html?id=${index}`;
+    bookLink.textContent = book.name;
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => {
+      window.location.href = `edit-book.html?id=${index}`;
+    };
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.classList.add('delete');
+    deleteBtn.onclick = () => deleteBook(index);
+
+    const actionDiv = document.createElement('div');
+    actionDiv.className = 'actions';
+    actionDiv.appendChild(editBtn);
+    actionDiv.appendChild(deleteBtn);
+
+    listItem.appendChild(bookLink);
+    listItem.appendChild(actionDiv);
+    booksList.appendChild(listItem);
+  });
+});
+
+
+function deleteBook(index) {
+  let books = JSON.parse(localStorage.getItem('books')) || [];
+  books.splice(index, 1);
+  localStorage.setItem('books', JSON.stringify(books));
+  location.reload(); 
+}
+
+
+if (document.getElementById('book-detail')) {
+  const bookId = getQueryParam('id');
+  sendData(bookData)
+    .then(data => {
+      const book = data[`id${bookId.slice(-1)}`]?.[`item${bookId.slice(-1)}`];
       const bookDetailDiv = document.getElementById('book-detail');
-      bookDetailDiv.innerHTML = `
+
+      if (book) {
+        bookDetailDiv.innerHTML = `
           <h2>${book.name}</h2>
           <p><strong>Author:</strong> ${book.author}</p>
           <p><strong>Editorial:</strong> ${book.editorial}</p>
           <p><strong>Edition:</strong> ${book.edition}</p>
           <p><strong>Number of Pages:</strong> ${book.number_of_pages}</p>
           <p><strong>Topics:</strong> ${book.topics}</p>
-      `;
-  } else {
-      document.getElementById('book-detail').innerHTML = "<p>Book not found.</p>";
-  }
-})
-.catch(err => {
-  document.getElementById('book-detail').innerHTML = `<p>Error: ${err.message}</p>`;
-});
+        `;
+      } else {
+        bookDetailDiv.innerHTML = "<p>Book not found.</p>";
+      }
+    })
+    .catch(err => {
+      document.getElementById('book-detail').innerHTML = `<p>Error: ${err.message}</p>`;
+    });
+}
 
+if (document.getElementById('create-book-form')) {
+  document.getElementById('create-book-form').addEventListener('submit', function (event) {
+    event.preventDefault();
 
-document.getElementById('create-book-form').addEventListener('submit', function (event) {
-  event.preventDefault(); // Prevent default form submission
+    const name = document.getElementById('name').value.trim();
+    const author = document.getElementById('author').value.trim();
+    const editorial = document.getElementById('editorial').value.trim();
+    const edition = document.getElementById('edition').value.trim();
+    const number_of_pages = parseInt(document.getElementById('number_of_pages').value.trim());
+    const topics = document.getElementById('topics').value.trim();
 
-  // Get all input values
-  const name = document.getElementById('name').value.trim();
-  const author = document.getElementById('author').value.trim();
-  const editorial = document.getElementById('editorial').value.trim();
-  const edition = document.getElementById('edition').value.trim();
-  const number_of_pages = parseInt(document.getElementById('number_of_pages').value.trim());
-  const topics = document.getElementById('topics').value.trim();
+    if (name.length < 3 || isNaN(number_of_pages) || number_of_pages <= 0) {
+      alert("Please enter valid name and number of pages.");
+      return;
+    }
 
-  // Basic validation
-  if (name.length < 3) {
-    alert("Name must be at least 3 characters.");
-    return;
-  }
+    const newBook = {
+      name,
+      author,
+      editorial,
+      edition,
+      number_of_pages,
+      topics
+    };
 
-  if (number_of_pages <= 0 || isNaN(number_of_pages)) {
-    alert("Number of pages must be a positive number.");
-    return;
-  }
+    const existingBooks = JSON.parse(localStorage.getItem('books')) || [];
+    existingBooks.push(newBook);
+    localStorage.setItem('books', JSON.stringify(existingBooks));
 
-  // Create new book object
-  const newBook = {
-    name,
-    author,
-    editorial,
-    edition,
-    number_of_pages,
-    topics
-  };
-
-  // Get existing books from localStorage or start fresh
-  const existingBooks = JSON.parse(localStorage.getItem('books')) || [];
-
-  // Add new book to list
-  existingBooks.push(newBook);
-
-  // Save back to localStorage
-  localStorage.setItem('books', JSON.stringify(existingBooks));
-
-  // Show success alert
-  alert("Book added successfully!");
-
-  // Redirect to homepage after a short delay
-  setTimeout(function() {
     window.location.href = "index.html";
-  }, 100); // Delay of 100 milliseconds
-});
+  });
+}
 
 
+if (document.getElementById('edit-book-form')) {
+  const id = getQueryParam('id');
+  const book = bookData[`id${id.slice(-1)}`]?.[`item${id.slice(-1)}`];
 
-const create_book = document.getElementById('create_book')
-create_book.addEventListener('click', () =>{
-  window.location.href = 'create-book.html';
-})
+  if (book) {
+    document.getElementById('name').value = book.name;
+    document.getElementById('author').value = book.author;
+    document.getElementById('editorial').value = book.editorial;
+    document.getElementById('edition').value = book.edition;
+    document.getElementById('number_of_pages').value = book.number_of_pages;
+    document.getElementById('topics').value = book.topics;
+  }
+
+  document.getElementById('edit-book-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert(`Book with id ${id} updated! (mock)`);
+    window.location.href = 'index.html';
+  });
+}
