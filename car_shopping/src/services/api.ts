@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import { Car, CarDetails, CarSearchResponse } from '../types/car';
 
 interface CarImageResponse {
@@ -19,7 +19,7 @@ interface CarDetailsResponse {
 }
 
 const NHTSA_BASE_URL = 'https://vpic.nhtsa.dot.gov/api/vehicles';
-const CAR_IMAGES_API_KEY = 'your_api_key'; // 需要替换为实际的 API key
+const CAR_IMAGES_API_KEY = 'your_api_key'; 
 const CAR_IMAGES_BASE_URL = 'https://api.carapi.app/api';
 
 export const searchCars = async (query: string): Promise<Car[]> => {
@@ -28,7 +28,7 @@ export const searchCars = async (query: string): Promise<Car[]> => {
       `${NHTSA_BASE_URL}/getmodelsformake/${encodeURIComponent(query)}?format=json`
     );
 
-    // 为每个车型获取图片
+    
     const carsWithImages = await Promise.all(
       response.data.Results.map(async (car) => {
         try {
@@ -69,7 +69,7 @@ export const searchCars = async (query: string): Promise<Car[]> => {
 
 export const getCarDetails = async (make: string, model: string): Promise<CarDetails> => {
   try {
-    // 获取基本车辆信息
+    
     const response = await axios.get<CarSearchResponse>(
       `${NHTSA_BASE_URL}/getmodelsformake/${encodeURIComponent(make)}?format=json`
     );
@@ -80,7 +80,7 @@ export const getCarDetails = async (make: string, model: string): Promise<CarDet
       throw new Error('Car not found');
     }
 
-    // 获取车辆图片
+    
     const imageResponse = await axios.get<CarImageResponse>(
       `${CAR_IMAGES_BASE_URL}/images`, {
         params: {
@@ -95,7 +95,7 @@ export const getCarDetails = async (make: string, model: string): Promise<CarDet
       }
     );
 
-    // 获取车辆详细信息
+    
     const detailsResponse = await axios.get<CarDetailsResponse>(
       `${CAR_IMAGES_BASE_URL}/cars`, {
         params: {
@@ -134,8 +134,8 @@ export const getCarDetails = async (make: string, model: string): Promise<CarDet
   }
 };
 
-// 备用图片获取函数
+
 const getDefaultCarImage = (make: string, model: string): string => {
-  // 使用 Unsplash API 作为备用图片源
+
   return `https://source.unsplash.com/800x450/?${encodeURIComponent(make)}+${encodeURIComponent(model)}+car`;
 }; 

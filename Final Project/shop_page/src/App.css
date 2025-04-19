@@ -1,0 +1,11 @@
+/* Navbar */
+.navbar-nav a{
+  font-size: 18px;
+}
+
+/* Products */
+.product-image {
+  height: 250px; /* or whatever uniform height fits your design */
+  object-fit: contain; /* keeps image ratio while fitting inside */
+  padding: 10px; /* optional, for spacing inside the card */
+}
